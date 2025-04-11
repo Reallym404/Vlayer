@@ -82,7 +82,7 @@ ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-web-proof.sh
 ```
 
 
-## EXECUTE THE FEATURES
+## EXECUTE THE DIFFERENT FEATURES
 
 - Time travel
 ```bash
