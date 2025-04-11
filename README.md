@@ -25,28 +25,60 @@ lsb_release -a
 ```
 - Output: Description: Ubuntu 24.04.2 LTS
 
-## 2. Fix Git Identity Issues (to avoid errors during vlayer init)
-```bash
-git config --global user.email "you@example.com"
-git config --global user.name "Your Name"
-```
-
-## Feature:  
-- Time travel
+## 2. Clone repo
 ```bash
 git clone https://github.com/Gmhax/Vlayer.git 
 cd Vlayer
 ```
 
-- Make it executable:
+## 3. Script Executable
 ```bash
-chmod +x setup-email-proof.sh
+chmod +x ~/Vlayer/scripts/setup-vlayer.sh
 ```
 
+## 4. Create the Symbolic 
 ```bash
-./setup-email-proof.sh
+ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-email-proof.sh
+ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-teleport.sh
+ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-time-travel.sh
+ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-web-proof.sh
+```
+## EXECUTE THE FEATURES
+
+- Time travel
+```bash
+git add .
+git commit -m "Prep: Setup complete from script"
+```
+```bash
+setup-time-travel.sh
 ```
 
+-Email proof
+```bash
+git add .
+git commit -m "Prep: Setup complete from script"
+```
+```bash
+setup-email-proof.sh
+```
+
+- Teleport 
+```bash
+git add .
+git commit -m "Prep: Setup complete from script"
+```
+```bash
+setup-teleport.sh
+```
+- Web proof
+```bash
+git add .
+git commit -m "Prep: Setup complete from script"
+```
+```bash
+setup-web-proof.sh
+```
 
 
 
