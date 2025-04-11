@@ -52,7 +52,7 @@ JSON_RPC_URL=https://sepolia.optimism.io
 
 - Click "Create new JWT token"
 
-- Paste your Twitter profile URL
+- Paste your Twitter profile URL or any URL like beeg@com HAHAHA
 
 - Copy your API token and save it somewhere safe 
  </pre>
