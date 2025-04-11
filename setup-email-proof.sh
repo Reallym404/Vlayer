@@ -1,49 +1,58 @@
 #!/bin/bash
 
+# Exit on any error
 set -e
 
 echo "🔧 Installing dependencies..."
 
+# Core system deps
 sudo apt-get update && sudo apt-get install -y git curl unzip build-essential
 
+# Install Foundry
 curl -L https://foundry.paradigm.xyz/ | bash
 source ~/.bashrc
 foundryup
 
+# Install Bun
 curl -fsSL https://bun.sh/install | bash
 source ~/.profile
 
+# Install vLayer CLI
 curl -SL https://install.vlayer.xyz/ | bash
 source ~/.bashrc
 vlayerup
 
 echo "✅ Dependencies installed."
-echo "📁 Setting up vLayer project in clean folder..."
 
-# Create and move to clean subdirectory
+# Print instructions
+echo "Setting up vLayer email proof project..."
+
+# Create directory and navigate
 mkdir -p my-email-proof
 cd my-email-proof
 
-# Initialize vLayer project
+# Initialize vlayer project
 vlayer init --template simple-email-proof
 
-# Build project
+# Build the project
 forge build
 
-# Go to generated vlayer directory
+# Navigate to vlayer directory
 cd vlayer
+
+# Install dependencies
 bun install
 
-# Prompt for secrets
-echo "🔐 Please enter your vLayer API Token:"
+# Prompt for API token and private key
+echo "Please enter your vLayer API Token (get it from https://dashboard.vlayer.xyz/):"
 read -s VLAYER_API_TOKEN
 echo
 
-echo "🔐 Please enter your private key (starting with 0x):"
+echo "Please enter your private key (starting with 0x):"
 read -s EXAMPLES_TEST_PRIVATE_KEY
 echo
 
-# Create env file
+# Create .env.testnet.local file with inputs
 cat > .env.testnet.local << EOL
 VLAYER_API_TOKEN=$VLAYER_API_TOKEN
 EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
@@ -51,14 +60,10 @@ CHAIN_NAME=optimismSepolia
 JSON_RPC_URL=https://sepolia.optimism.io
 EOL
 
-echo "✅ Environment file created."
+echo "Environment file created at .env.testnet.local"
 
-# Run prove
-echo "🚀 Running prove:testnet..."
+# Run the prove command
+echo "Running prove:testnet..."
 bun run prove:testnet
 
-echo "🎉 Setup complete!"
-
-# Optional git commit
-git add .
-git commit -m "Prep: Setup complete from script"
+echo "Setup complete!"
