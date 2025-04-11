@@ -1,12 +1,16 @@
 #!/bin/bash
 
-# Script to set up vlayer email proof project with user input for env variables and .gitignore setup
+# Exit on any error
+set -e
 
-# Create directory and navigate to it
+# Print instructions
+echo "Setting up vLayer email proof project..."
+
+# Create directory and navigate
 mkdir -p my-email-proof
 cd my-email-proof
 
-# Initialize vlayer project with template
+# Initialize vlayer project
 vlayer init --template simple-email-proof
 
 # Build the project
@@ -18,33 +22,27 @@ cd vlayer
 # Install dependencies
 bun install
 
-# Prompt user for VLAYER_API_TOKEN
-echo "To get your API TOKEN, go to https://dashboard.vlayer.xyz/, click 'Create new JWT token', copy your Twitter Profile, and paste it."
-read -p "Enter your VLAYER_API_TOKEN: " vlayer_api_token
+# Prompt for API token and private key
+echo "Please enter your vLayer API Token (get it from https://dashboard.vlayer.xyz/):"
+read -s VLAYER_API_TOKEN
+echo
 
-# Prompt user for EXAMPLES_TEST_PRIVATE_KEY
-read -p "Enter your EXAMPLES_TEST_PRIVATE_KEY (e.g., 0xYOUR_PRIVATE-KEY): " private_key
+echo "Please enter your private key (starting with 0x):"
+read -s EXAMPLES_TEST_PRIVATE_KEY
+echo
 
-# Create .env.testnet.local file with user-provided values
-cat << EOF > .env.testnet.local
-VLAYER_API_TOKEN=$vlayer_api_token
-EXAMPLES_TEST_PRIVATE_KEY=$private_key
+# Create .env.testnet.local file with inputs
+cat > .env.testnet.local << EOL
+VLAYER_API_TOKEN=$VLAYER_API_TOKEN
+EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
 CHAIN_NAME=optimismSepolia
 JSON_RPC_URL=https://sepolia.optimism.io
-EOF
+EOL
 
-# Ensure .env.testnet.local is in .gitignore
-if [ -f .gitignore ]; then
-    # Check if .env.testnet.local is already in .gitignore
-    if ! grep -Fx ".env.testnet.local" .gitignore > /dev/null; then
-        echo ".env.testnet.local" >> .gitignore
-    fi
-else
-    # Create .gitignore with .env.testnet.local
-    echo ".env.testnet.local" > .gitignore
-fi
+echo "Environment file created at .env.testnet.local"
 
-# Notify user of completion
-echo "Setup complete! The .env.testnet.local file has been created in my-email-proof/vlayer/ with your provided values."
-echo ".env.testnet.local has been added to .gitignore to prevent it from being committed."
-echo "You can verify the contents by checking my-email-proof/vlayer/.env.testnet.local and my-email-proof/vlayer/.gitignore."
+# Run the prove command
+echo "Running prove:testnet..."
+bun run prove:testnet
+
+echo "Setup complete!"
