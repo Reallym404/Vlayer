@@ -46,7 +46,7 @@ ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-time-travel.sh
 ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-web-proof.sh
 ```
 
-## Note: For every feature you execute, you need to input your VLAYER_API_TOKEN and PRIVATE KEY.
+## Note: For every feature you execute, you need to input your VLAYER_API_TOKEN & PRIVATE KEY.
 <pre> 
 - Steps to get your API token:
 
