@@ -37,5 +37,36 @@ git config --global user.name "Your Name"
 ## Feature:  
 - Time travel
 ```bash
-git clone 
+git clone https://github.com/Gmhax/Vlayer.git 
+cd Vlayer
 ```
+
+- Make it executable:
+```bash
+chmod +x setup-email-proof.sh
+```
+
+```bash
+./setup-email-proof.sh
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
