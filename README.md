@@ -48,4 +48,5 @@ VLAYER_API_TOKEN=YOUR_VLAYER_API_TOKEN // To get your API TOKEN go to https://da
 EXAMPLES_TEST_PRIVATE_KEY=0xYOUR-PRIVATE-KEY  // Change YOUR_VLAYER_API_TOKEN and 0xYOUR-PRIVATE-KEY with your own
 CHAIN_NAME=optimismSepolia
 JSON_RPC_URL=https://sepolia.optimism.io
+bun run prove:testnet
 ```
