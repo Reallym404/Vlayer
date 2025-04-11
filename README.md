@@ -37,16 +37,5 @@ git config --global user.name "Your Name"
 ## Feature:  
 - Time travel
 ```bash
-mkdir my-email-proof
-cd my-email-proof
-vlayer init --template simple-email-proof
-forge build
-cd vlayer
-bun install
-nano .env.testnet.local
-VLAYER_API_TOKEN=YOUR_VLAYER_API_TOKEN // To get your API TOKEN go to https://dashboard.vlayer.xyz/ ▶️ Click Create new JWT token ▶️ Copy your Twitter Profile and paste ▶️ Copy your api token and save it!
-EXAMPLES_TEST_PRIVATE_KEY=0xYOUR-PRIVATE-KEY  // Change YOUR_VLAYER_API_TOKEN and 0xYOUR-PRIVATE-KEY with your own
-CHAIN_NAME=optimismSepolia
-JSON_RPC_URL=https://sepolia.optimism.io
-bun run prove:testnet
+git clone 
 ```
