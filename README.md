@@ -38,7 +38,7 @@ git add scripts/setup-vlayer.sh
 ```bash
 nano ~/Vlayer/.env
 ```
--Paste: 
+- Paste: 
 ```bash
 VLAYER_API_TOKEN=YOUR_VLAYER_API_TOKEN
 EXAMPLES_TEST_PRIVATE_KEY=0xYOUR-PRIVATE-KEY
