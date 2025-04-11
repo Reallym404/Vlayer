@@ -84,10 +84,18 @@ setup-web-proof.sh
 
 
 
+## Note: For every feature you execute, you need to input your VLAYER_API_TOKEN and private key.
+<pre> ```bash 
+- Steps to get your API token:
 
+- Go to https://dashboard.vlayer.xyz/
 
+- Click "Create new JWT token"
 
+- Paste your Twitter profile URL
 
+- Copy your API token and save it somewhere safe 
+``` </pre>
 
 
 
