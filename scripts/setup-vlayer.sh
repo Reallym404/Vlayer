@@ -3,6 +3,19 @@
 # Exit on any error
 set -e
 
+# File to store API token and private key
+ENV_FILE="$HOME/Vlayer/.env"
+
+# Function to load API token and private key from the .env file
+load_env() {
+    if [ -f "$ENV_FILE" ]; then
+        source "$ENV_FILE"
+    else
+        echo "Error: $ENV_FILE not found. Please create it with VLAYER_API_TOKEN, EXAMPLES_TEST_PRIVATE_KEY, CHAIN_NAME, and JSON_RPC_URL."
+        exit 1
+    fi
+}
+
 # Function to determine project details based on script name
 get_project_details() {
     case "$(basename "$0")" in
@@ -86,22 +99,22 @@ cd vlayer
 echo "Installing Bun dependencies..."
 bun install
 
-# Prompt for API token and private key
-echo "Please enter your vLayer API Token (get it from https://dashboard.vlayer.xyz/):"
-read -r VLAYER_API_TOKEN
-echo
+# Load API token and private key from .env file
+load_env
 
-echo "Please enter your private key (starting with 0x):"
-read -r EXAMPLES_TEST_PRIVATE_KEY
-echo
+# Verify that required variables are set
+if [ -z "$VLAYER_API_TOKEN" ] || [ -z "$EXAMPLES_TEST_PRIVATE_KEY" ] || [ -z "$CHAIN_NAME" ] || [ -z "$JSON_RPC_URL" ]; then
+    echo "Error: One or more required variables (VLAYER_API_TOKEN, EXAMPLES_TEST_PRIVATE_KEY, CHAIN_NAME, JSON_RPC_URL) are not set in $ENV_FILE."
+    exit 1
+fi
 
 # Create .env.testnet.local file with inputs
 echo "Creating environment file..."
 cat > .env.testnet.local << EOL
 VLAYER_API_TOKEN=$VLAYER_API_TOKEN
 EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
-CHAIN_NAME=optimismSepolia
-JSON_RPC_URL=https://sepolia.optimism.io
+CHAIN_NAME=$CHAIN_NAME
+JSON_RPC_URL=$JSON_RPC_URL
 EOL
 
 echo "Environment file created at .env.testnet.local"
