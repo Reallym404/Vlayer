@@ -3,6 +3,31 @@
 # Exit on any error
 set -e
 
+# Function to determine project details based on script name
+get_project_details() {
+    case "$(basename "$0")" in
+        setup-email-proof.sh)
+            echo "my-email-proof simple-email-proof 'Email Proof'"
+            ;;
+        setup-teleport.sh)
+            echo "my-simple-teleport simple-teleport 'Teleport'"
+            ;;
+        setup-time-travel.sh)
+            echo "my-simple-time-travel simple-time-travel 'Time Travel'"
+            ;;
+        setup-web-proof.sh)
+            echo "my-simple-web-proof simple-web-proof 'Web Proof'"
+            ;;
+        *)
+            echo "Error: Unknown script name. Use one of: setup-email-proof.sh, setup-teleport.sh, setup-time-travel.sh, setup-web-proof.sh"
+            exit 1
+            ;;
+    esac
+}
+
+# Get project details
+read -r PROJECT_DIR TEMPLATE PROJECT_NAME <<< $(get_project_details)
+
 echo "🔧 Installing dependencies..."
 
 # Core system deps
@@ -36,75 +61,53 @@ fi
 
 echo "✅ Dependencies installed."
 
-# Function to set up a vLayer project
-setup_vlayer_project() {
-    local project_dir="$1"
-    local template="$2"
-    local project_name="$3"
+echo "Setting up vLayer project: $PROJECT_NAME..."
 
-    echo "Setting up vLayer project: $project_name..."
+# Create directory and navigate
+mkdir -p "$PROJECT_DIR"
+cd "$PROJECT_DIR"
 
-    # Create directory and navigate
-    mkdir -p "$project_dir"
-    cd "$project_dir"
+# Initialize vLayer project (skip if already initialized)
+if [ ! -f "foundry.toml" ]; then
+    echo "Initializing vLayer project with template $TEMPLATE..."
+    vlayer init --template "$TEMPLATE"
+else
+    echo "vLayer project already initialized in $PROJECT_DIR."
+fi
 
-    # Initialize vLayer project (skip if already initialized)
-    if [ ! -f "foundry.toml" ]; then
-        echo "Initializing vLayer project with template $template..."
-        vlayer init --template "$template"
-    else
-        echo "vLayer project already initialized in $project_dir."
-    fi
+# Build the project
+echo "Building project..."
+forge build
 
-    # Build the project
-    echo "Building project..."
-    forge build
+# Navigate to vlayer directory
+cd vlayer
 
-    # Navigate to vlayer directory
-    cd vlayer
+# Install Bun dependencies
+echo "Installing Bun dependencies..."
+bun install
 
-    # Install Bun dependencies
-    echo "Installing Bun dependencies..."
-    bun install
+# Prompt for API token and private key
+echo "Please enter your vLayer API Token (get it from https://dashboard.vlayer.xyz/):"
+read -r VLAYER_API_TOKEN
+echo
 
-    # Prompt for API token and private key (only once, but we'll write to each project's .env)
-    if [ -z "$VLAYER_API_TOKEN" ]; then
-        echo "Please enter your vLayer API Token (get it from https://dashboard.vlayer.xyz/):"
-        read -r VLAYER_API_TOKEN
-        echo
-    fi
+echo "Please enter your private key (starting with 0x):"
+read -r EXAMPLES_TEST_PRIVATE_KEY
+echo
 
-    if [ -z "$EXAMPLES_TEST_PRIVATE_KEY" ]; then
-        echo "Please enter your private key (starting with 0x):"
-        read -r EXAMPLES_TEST_PRIVATE_KEY
-        echo
-    fi
-
-    # Create .env.testnet.local file with inputs
-    echo "Creating environment file..."
-    cat > .env.testnet.local << EOL
+# Create .env.testnet.local file with inputs
+echo "Creating environment file..."
+cat > .env.testnet.local << EOL
 VLAYER_API_TOKEN=$VLAYER_API_TOKEN
 EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
 CHAIN_NAME=optimismSepolia
 JSON_RPC_URL=https://sepolia.optimism.io
 EOL
 
-    echo "Environment file created at .env.testnet.local"
+echo "Environment file created at .env.testnet.local"
 
-    # Run the prove command
-    echo "Running prove:testnet..."
-    bun run prove:testnet
+# Run the prove command
+echo "Running prove:testnet..."
+bun run prove:testnet
 
-    echo "✅ Setup complete for $project_name!"
-
-    # Navigate back to the root directory
-    cd ../..
-}
-
-# Set up all four projects
-setup_vlayer_project "my-email-proof" "simple-email-proof" "Email Proof"
-setup_vlayer_project "my-simple-teleport" "simple-teleport" "Teleport"
-setup_vlayer_project "my-simple-time-travel" "simple-time-travel" "Time Travel"
-setup_vlayer_project "my-simple-web-proof" "simple-web-proof" "Web Proof"
-
-echo "✅ All vLayer projects have been set up!"
+echo "✅ Setup complete for $PROJECT_NAME!"
