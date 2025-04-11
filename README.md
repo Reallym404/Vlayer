@@ -15,18 +15,15 @@ First get faucet :  Op Sepolia Faucet:
   🔗   https://testnet.brid.gg/op-sepolia
 
 
-## 1. Install dependencies
+## 1. Steps to Upgrade from 20.04 to 24.04
 ```bash
-sudo apt-get update && sudo apt-get install -y git curl unzip build-essential && \
-curl -L https://foundry.paradigm.xyz/ | bash && \
-source ~/.bashrc && \
-foundryup && \
-curl -fsSL https://bun.sh/install | bash && \
-source ~/.profile && \
-curl -SL https://install.vlayer.xyz/ | bash && \
-source ~/.bashrc && \
-vlayerup
+sudo apt update && sudo apt upgrade -y
+sudo apt dist-upgrade -y
+sudo apt install update-manager-core
+sudo do-release-upgrade -d
+lsb_release -a
 ```
+- Output: Description: Ubuntu 24.04.2 LTS
 
 ## 2. Fix Git Identity Issues (to avoid errors during vlayer init)
 ```bash
