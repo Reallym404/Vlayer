@@ -120,6 +120,11 @@ setup-web-proof.sh
 ```
 
 
+## Output on your dashboard https://dashboard.vlayer.xyz/history
+![image](https://github.com/user-attachments/assets/34f7bd7d-cd10-46df-8f8c-6c12ce93f3de)
+
+
+
 
 ## DONE BRUUUHHH!!!!!
 
