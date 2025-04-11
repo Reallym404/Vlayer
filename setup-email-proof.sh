@@ -1,37 +1,43 @@
 #!/bin/bash
 
-# Exit on any error
 set -e
 
-# Print instructions
-echo "Setting up vLayer email proof project..."
+echo "🔧 Installing dependencies..."
 
-# Create directory and navigate
-mkdir -p my-email-proof
-cd my-email-proof
+sudo apt-get update && sudo apt-get install -y git curl unzip build-essential
 
-# Initialize vlayer project
-vlayer init --template simple-email-proof
+curl -L https://foundry.paradigm.xyz/ | bash
+source ~/.bashrc
+foundryup
 
-# Build the project
+curl -fsSL https://bun.sh/install | bash
+source ~/.profile
+
+curl -SL https://install.vlayer.xyz/ | bash
+source ~/.bashrc
+vlayerup
+
+echo "✅ Dependencies installed."
+echo "📁 Initializing vLayer project inside this repo..."
+
+# (Optional) Clean existing folder if needed
+# rm -rf ./vlayer
+
+vlayer init --template simple-email-proof --force
+
 forge build
 
-# Navigate to vlayer directory
 cd vlayer
-
-# Install dependencies
 bun install
 
-# Prompt for API token and private key
-echo "Please enter your vLayer API Token (get it from https://dashboard.vlayer.xyz/):"
+echo "🔐 Please enter your vLayer API Token:"
 read -s VLAYER_API_TOKEN
 echo
 
-echo "Please enter your private key (starting with 0x):"
+echo "🔐 Please enter your private key (starting with 0x):"
 read -s EXAMPLES_TEST_PRIVATE_KEY
 echo
 
-# Create .env.testnet.local file with inputs
 cat > .env.testnet.local << EOL
 VLAYER_API_TOKEN=$VLAYER_API_TOKEN
 EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
@@ -39,10 +45,13 @@ CHAIN_NAME=optimismSepolia
 JSON_RPC_URL=https://sepolia.optimism.io
 EOL
 
-echo "Environment file created at .env.testnet.local"
+echo "✅ Environment file created."
 
-# Run the prove command
-echo "Running prove:testnet..."
+echo "🚀 Running prove:testnet..."
 bun run prove:testnet
 
-echo "Setup complete!"
+echo "🎉 Setup complete!"
+
+git add .
+git commit -m "Prep: Setup complete from script"
+
