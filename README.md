@@ -31,22 +31,20 @@ lsb_release -a
 ```bash
 git clone https://github.com/Gmhax/Vlayer.git 
 cd Vlayer
+git add scripts/setup-vlayer.sh
 ```
 
-## 3. Script Executable
+## 3. Create the .env
 ```bash
-chmod +x ~/Vlayer/scripts/setup-vlayer.sh
+nano ~/Vlayer/.env
 ```
-
-## 4. Create the Symbolic 
+-Paste: 
 ```bash
-ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-email-proof.sh
-ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-teleport.sh
-ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-time-travel.sh
-ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-web-proof.sh
+VLAYER_API_TOKEN=YOUR_VLAYER_API_TOKEN
+EXAMPLES_TEST_PRIVATE_KEY=0xYOUR-PRIVATE-KEY
+CHAIN_NAME=optimismSepolia
+JSON_RPC_URL=https://sepolia.optimism.io
 ```
-
-## Note: For every feature you execute, you need to input your VLAYER_API_TOKEN & PRIVATE KEY.
 <pre> 
 - Steps to get your API token:
 
@@ -59,7 +57,25 @@ ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-web-proof.sh
 - Copy your API token and save it somewhere safe 
  </pre>
 
+- Secure the .env File
+```bash
+chmod 600 ~/Vlayer/.env
+echo ".env" >> ~/Vlayer/.gitignore
+```
 
+
+## 4. Script Executable
+```bash
+chmod +x ~/Vlayer/scripts/setup-vlayer.sh
+```
+
+## 5. Create the Symbolic 
+```bash
+ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-email-proof.sh
+ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-teleport.sh
+ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-time-travel.sh
+ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-web-proof.sh
+```
 
 
 ## EXECUTE THE FEATURES
@@ -101,7 +117,7 @@ setup-web-proof.sh
 
 
 
-## DONE
+## DONE BRUUUHHH!!!!!
 
 
 
