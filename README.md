@@ -14,6 +14,8 @@ First get faucet :  Op Sepolia Faucet:
 -   🔗  https://www.alchemy.com/faucets/ethereum-sepolia
 -   🔗   https://testnet.brid.gg/op-sepolia
 
+## Use Codespace to deploy https://github.com/codespaces
+- Click blank template 
 
 ## 1. Steps to Upgrade from 20.04 to 24.04
 ```bash
