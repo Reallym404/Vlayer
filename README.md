@@ -3,7 +3,7 @@ vlayer provides tools and infrastructure that give smart contracts super powers 
 
 
 ## Installation
-- The easiest way to install vlayer is by using vlayerup, the vlayer toolchain installer.
+# The easiest way to install vlayer is by using vlayerup, the vlayer toolchain installer.
 
 
 ## Now Visit here: https://dashboard.vlayer.xyz/
