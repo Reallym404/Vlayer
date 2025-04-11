@@ -45,6 +45,23 @@ ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-teleport.sh
 ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-time-travel.sh
 ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-web-proof.sh
 ```
+
+## Note: For every feature you execute, you need to input your VLAYER_API_TOKEN and PRIVATE KEY.
+<pre> 
+- Steps to get your API token:
+
+- Go to https://dashboard.vlayer.xyz/
+
+- Click "Create new JWT token"
+
+- Paste your Twitter profile URL
+
+- Copy your API token and save it somewhere safe 
+ </pre>
+
+
+
+
 ## EXECUTE THE FEATURES
 
 - Time travel
@@ -84,18 +101,7 @@ setup-web-proof.sh
 
 
 
-## Note: For every feature you execute, you need to input your VLAYER_API_TOKEN and private key.
-<pre> 
-- Steps to get your API token:
-
-- Go to https://dashboard.vlayer.xyz/
-
-- Click "Create new JWT token"
-
-- Paste your Twitter profile URL
-
-- Copy your API token and save it somewhere safe 
- </pre>
+## DONE
 
 
 
