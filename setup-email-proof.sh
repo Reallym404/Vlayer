@@ -45,11 +45,11 @@ bun install
 
 # Prompt for API token and private key
 echo "Please enter your vLayer API Token (get it from https://dashboard.vlayer.xyz/):"
-read -s VLAYER_API_TOKEN
+read  VLAYER_API_TOKEN
 echo
 
 echo "Please enter your private key (starting with 0x):"
-read -s EXAMPLES_TEST_PRIVATE_KEY
+read  EXAMPLES_TEST_PRIVATE_KEY
 echo
 
 # Create .env.testnet.local file with inputs
