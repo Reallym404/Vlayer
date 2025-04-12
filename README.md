@@ -77,6 +77,7 @@ chmod +x ~/Vlayer/scripts/setup-vlayer.sh
 
 ## 5. Create the Symbolic 
 ```bash
+mkdir -p ~/Vlayer/scripts
 ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-email-proof.sh
 ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-teleport.sh
 ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-time-travel.sh
