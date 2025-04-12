@@ -41,6 +41,7 @@ git add scripts/setup-vlayer.sh
 
 ## 3. Create the .env
 ```bash
+mkdir -p ~/Vlayer
 nano ~/Vlayer/.env
 ```
 - Paste: 
