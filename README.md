@@ -26,6 +26,7 @@ First get faucet :  Op Sepolia Faucet:
 sudo apt update && sudo apt upgrade -y
 sudo apt dist-upgrade -y
 sudo apt install update-manager-core
+sudo do-release-upgrade
 sudo do-release-upgrade -d
 lsb_release -a
 ```
