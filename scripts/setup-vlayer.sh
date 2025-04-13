@@ -16,25 +16,31 @@ upgrade_ubuntu() {
     CURRENT_VERSION=$(lsb_release -sr)
     if [[ "$CURRENT_VERSION" != "24.04" ]]; then
         echo "🚀 Preparing to upgrade Ubuntu to 24.04 LTS..."
-        # Remove problematic git-lfs repository if present
-        if ls /etc/apt/sources.list.d/*git-lfs* 2>/dev/null || grep -r "packagecloud.io/github/git-lfs" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
-            echo "Removing problematic git-lfs repository..."
-            sudo rm -f /etc/apt/sources.list.d/*git-lfs*
-            sudo sed -i '/packagecloud.io\/github\/git-lfs/d' /etc/apt/sources.list
-        fi
-        # Clean APT cache and fix broken packages
+        # Clear APT caches and locks
+        echo "Clearing APT caches and locks..."
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo rm -f /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock
+        sudo dpkg --configure -a
+        # Backup and disable third-party repositories
+        echo "Backing up and disabling third-party repositories..."
+        sudo mkdir -p /etc/apt/sources.list.d/backup
+        sudo mv /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/backup/ 2>/dev/null || true
+        # Ensure only Ubuntu repositories are active
+        sudo bash -c 'echo "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main restricted universe multiverse" > /etc/apt/sources.list'
+        sudo bash -c 'echo "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc)-updates main restricted universe multiverse" >> /etc/apt/sources.list'
+        sudo bash -c 'echo "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc)-backports main restricted universe multiverse" >> /etc/apt/sources.list'
+        sudo bash -c 'echo "deb http://security.ubuntu.com/ubuntu $(lsb_release -sc)-security main restricted universe multiverse" >> /etc/apt/sources.list'
+        # Update and fix packages
         sudo apt clean
         sudo apt update --fix-missing || {
             echo "Warning: apt update had issues, retrying..."
             sudo apt update
         }
-        sudo dpkg --configure -a
         sudo apt install -f -y
         sudo apt autoremove -y
-        # Purge and reinstall critical packages to avoid aptsources/uaclient errors
+        # Force-reinstall critical packages
         echo "Reinstalling python3-apt and ubuntu-advantage-tools..."
-        sudo apt purge -y python3-apt ubuntu-advantage-tools || true
-        sudo apt install -y python3-apt ubuntu-advantage-tools update-manager-core
+        sudo apt install --reinstall -y python3-apt ubuntu-advantage-tools update-manager-core
         sudo apt dist-upgrade -y
         # Verify LTS upgrade configuration
         if ! grep -q "Prompt=lts" /etc/update-manager/release-upgrades; then
@@ -44,9 +50,13 @@ upgrade_ubuntu() {
         fi
         # Perform the upgrade
         echo "Running LTS upgrade to 24.04..."
-        sudo do-release-upgrade -f DistUpgradeViewNonInteractive
+        sudo do-release-upgrade -f DistUpgradeViewNonInteractive --allow-third-party
         sudo apt update && sudo apt upgrade -y
         sudo apt full-upgrade -y
+        # Restore third-party repositories
+        echo "Restoring third-party repositories..."
+        sudo mv /etc/apt/sources.list.d/backup/*.list /etc/apt/sources.list.d/ 2>/dev/null || true
+        sudo apt update
         echo "✅ Ubuntu upgraded to $(lsb_release -sr). Rebooting..."
         sudo reboot
     else
