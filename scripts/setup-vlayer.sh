@@ -113,22 +113,34 @@ install_dependencies() {
         # Ensure PATH is updated
         [ -f ~/.bashrc ] && source ~/.bashrc
         [ -f ~/.profile ] && source ~/.profile
-        # Run vlayerup if available
-        if command -v vlayerup &> /dev/null; then
-            echo "Running vlayerup to install vlayer..."
-            vlayerup
-        fi
+        # Run vlayerup with retries
+        for attempt in {1..3}; do
+            if command -v vlayerup &> /dev/null; then
+                echo "Running vlayerup to install vlayer (attempt $attempt)..."
+                vlayerup
+                [ -f ~/.bashrc ] && source ~/.bashrc
+                [ -f ~/.profile ] && source ~/.profile
+                break
+            else
+                echo "⚠️ vlayerup not found, retrying after delay (attempt $attempt)..."
+                sleep 2
+            fi
+        done
         # Verify vlayer is available
         if ! command -v vlayer &> /dev/null; then
             echo "⚠️ vlayer not found in PATH. Trying to locate it..."
-            for path in ~/.vlayer/bin ~/.vlayerup/bin ~/.local/bin; do
+            for path in ~/.vlayer/bin ~/.vlayerup/bin ~/.local/bin ~/.bin /usr/local/bin; do
                 if [ -f "$path/vlayer" ]; then
                     export PATH="$path:$PATH"
+                    echo "Found vlayer in $path, added to PATH."
                     break
                 fi
             done
             if ! command -v vlayer &> /dev/null; then
-                echo "Error: vLayer CLI installation failed. Please run 'curl -SL https://install.vlayer.xyz/ | bash' manually, then 'vlayerup'."
+                echo "Error: vLayer CLI installation failed after retries. Please run the following manually:"
+                echo "  curl -SL https://install.vlayer.xyz/ | bash"
+                echo "  source ~/.bashrc"
+                echo "  vlayerup"
                 exit 1
             fi
         fi
