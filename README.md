@@ -23,7 +23,6 @@ First get faucet :  Op Sepolia Faucet:
 
 ## 1. Steps to Upgrade from 20.04 to 24.04
 ```bash
-sudo apt update && sudo apt upgrade -y
 sudo apt dist-upgrade -y
 sudo apt install update-manager-core
 sudo do-release-upgrade
