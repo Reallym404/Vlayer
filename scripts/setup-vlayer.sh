@@ -25,10 +25,15 @@ upgrade_ubuntu() {
         # Clean APT cache and fix broken packages
         sudo apt clean
         sudo apt update --fix-missing || {
-            echo "Warning: apt update had issues, attempting to continue..."
+            echo "Warning: apt update had issues, retrying..."
+            sudo apt update
         }
+        sudo dpkg --configure -a
         sudo apt install -f -y
-        # Install and update critical packages
+        sudo apt autoremove -y
+        # Purge and reinstall critical packages to avoid aptsources/uaclient errors
+        echo "Reinstalling python3-apt and ubuntu-advantage-tools..."
+        sudo apt purge -y python3-apt ubuntu-advantage-tools || true
         sudo apt install -y python3-apt ubuntu-advantage-tools update-manager-core
         sudo apt dist-upgrade -y
         # Verify LTS upgrade configuration
