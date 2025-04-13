@@ -113,13 +113,22 @@ install_dependencies() {
         # Ensure PATH is updated
         [ -f ~/.bashrc ] && source ~/.bashrc
         [ -f ~/.profile ] && source ~/.profile
+        # Run vlayerup if available
+        if command -v vlayerup &> /dev/null; then
+            echo "Running vlayerup to install vlayer..."
+            vlayerup
+        fi
         # Verify vlayer is available
         if ! command -v vlayer &> /dev/null; then
             echo "⚠️ vlayer not found in PATH. Trying to locate it..."
-            if [ -f ~/.vlayer/bin/vlayer ]; then
-                export PATH="$HOME/.vlayer/bin:$PATH"
-            else
-                echo "Error: vLayer CLI installation failed. Please run 'curl -SL https://install.vlayer.xyz/ | bash' manually."
+            for path in ~/.vlayer/bin ~/.vlayerup/bin ~/.local/bin; do
+                if [ -f "$path/vlayer" ]; then
+                    export PATH="$path:$PATH"
+                    break
+                fi
+            done
+            if ! command -v vlayer &> /dev/null; then
+                echo "Error: vLayer CLI installation failed. Please run 'curl -SL https://install.vlayer.xyz/ | bash' manually, then 'vlayerup'."
                 exit 1
             fi
         fi
