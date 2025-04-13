@@ -73,7 +73,7 @@ echo ".env" >> ~/Vlayer/.gitignore
 
 ## 4. Script Executable
 ```bash
-chmod +x ~/Vlayer/scripts/setup-vlayer.sh
+chmod +x ./setup-vlayer.sh
 ```
 
 ## 5. Create the Symbolic 
