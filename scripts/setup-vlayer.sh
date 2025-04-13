@@ -110,8 +110,19 @@ install_dependencies() {
     if ! command -v vlayer &> /dev/null; then
         echo "Installing vLayer CLI..."
         curl -SL https://install.vlayer.xyz/ | bash
+        # Ensure PATH is updated
         [ -f ~/.bashrc ] && source ~/.bashrc
         [ -f ~/.profile ] && source ~/.profile
+        # Verify vlayer is available
+        if ! command -v vlayer &> /dev/null; then
+            echo "⚠️ vlayer not found in PATH. Trying to locate it..."
+            if [ -f ~/.vlayer/bin/vlayer ]; then
+                export PATH="$HOME/.vlayer/bin:$PATH"
+            else
+                echo "Error: vLayer CLI installation failed. Please run 'curl -SL https://install.vlayer.xyz/ | bash' manually."
+                exit 1
+            fi
+        fi
     else
         echo "vLayer CLI already installed."
     fi
