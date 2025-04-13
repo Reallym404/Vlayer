@@ -16,9 +16,17 @@ upgrade_ubuntu() {
     CURRENT_VERSION=$(lsb_release -sr)
     if [[ "$CURRENT_VERSION" != "24.04" ]]; then
         echo "🚀 Preparing to upgrade Ubuntu to 24.04 LTS..."
+        # Remove problematic git-lfs repository if present
+        if ls /etc/apt/sources.list.d/*git-lfs* 2>/dev/null || grep -r "packagecloud.io/github/git-lfs" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null; then
+            echo "Removing problematic git-lfs repository..."
+            sudo rm -f /etc/apt/sources.list.d/*git-lfs*
+            sudo sed -i '/packagecloud.io\/github\/git-lfs/d' /etc/apt/sources.list
+        fi
         # Clean APT cache and fix broken packages
         sudo apt clean
-        sudo apt update --fix-missing
+        sudo apt update --fix-missing || {
+            echo "Warning: apt update had issues, attempting to continue..."
+        }
         sudo apt install -f -y
         # Install and update critical packages
         sudo apt install -y python3-apt ubuntu-advantage-tools update-manager-core
@@ -82,19 +90,22 @@ setup_env() {
     echo "🔑 Setting up environment file..."
     mkdir -p ~/Vlayer
 
+    # Initialize defaults
+    CHAIN_NAME=$DEFAULT_CHAIN_NAME
+    JSON_RPC_URL=$DEFAULT_JSON_RPC_URL
+
     if [ -f "$ENV_FILE" ]; then
         echo "Existing .env file found. Loading..."
         source "$ENV_FILE"
+        # Ensure defaults if not set in .env
+        CHAIN_NAME=${CHAIN_NAME:-$DEFAULT_CHAIN_NAME}
+        JSON_RPC_URL=${JSON_RPC_URL:-$DEFAULT_JSON_RPC_URL}
     else
         echo "No .env file found. Please provide the following details."
         read -p "Enter your vLayer API token: " VLAYER_API_TOKEN
         read -p "Enter your test private key (e.g., 0x...): " EXAMPLES_TEST_PRIVATE_KEY
 
-        # Use defaults for chain and RPC
-        CHAIN_NAME=$DEFAULT_CHAIN_NAME
-        JSON_RPC_URL=$DEFAULT_JSON_RPC_URL
-
-        # Create .env file
+        # Create .env file with defaults
         cat > "$ENV_FILE" << EOL
 VLAYER_API_TOKEN=$VLAYER_API_TOKEN
 EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
