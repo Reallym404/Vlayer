@@ -65,7 +65,7 @@ upgrade_ubuntu() {
             exit 0
         else
             echo "Rebooting..."
-            sudo reboot
+        
         fi
     else
         echo "✅ Ubuntu is already at 24.04."
