@@ -163,12 +163,13 @@ EOL
 # Function to clone or update repo
 setup_repo() {
     echo "📂 Setting up repository..."
-    if [ -d "~/Vlayer" ]; then
+    if [ -d "~/Vlayer/.git" ]; then
         echo "Repository already exists. Pulling latest changes..."
         cd ~/Vlayer
-        git pull origin main || echo "No updates available."
+        git pull origin main || echo "No updates available or minor error, continuing..."
     else
         echo "Cloning repository..."
+        rm -rf ~/Vlayer  # Clear any non-git directory
         git clone https://github.com/Gmhax/Vlayer.git ~/Vlayer
         cd ~/Vlayer
     fi
