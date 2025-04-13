@@ -27,6 +27,8 @@ sudo apt update && sudo apt upgrade -y
 sudo apt dist-upgrade -y
 sudo apt install update-manager-core
 sudo do-release-upgrade
+sudo apt update && sudo apt upgrade -y 
+sudo apt full-upgrade
 sudo do-release-upgrade -d
 lsb_release -a
 ```
