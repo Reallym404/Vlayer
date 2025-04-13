@@ -16,10 +16,13 @@ upgrade_ubuntu() {
     CURRENT_VERSION=$(lsb_release -sr)
     if [[ "$CURRENT_VERSION" != "24.04" ]]; then
         echo "🚀 Preparing to upgrade Ubuntu to 24.04 LTS..."
-        # Ensure package sources are up to date
-        sudo apt update
+        # Clean APT cache and fix broken packages
+        sudo apt clean
+        sudo apt update --fix-missing
+        sudo apt install -f -y
+        # Install and update critical packages
+        sudo apt install -y python3-apt ubuntu-advantage-tools update-manager-core
         sudo apt dist-upgrade -y
-        sudo apt install update-manager-core -y
         # Verify LTS upgrade configuration
         if ! grep -q "Prompt=lts" /etc/update-manager/release-upgrades; then
             echo "Configuring system for LTS upgrades..."
