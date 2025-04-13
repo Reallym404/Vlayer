@@ -15,11 +15,20 @@ upgrade_ubuntu() {
     echo "🔍 Checking Ubuntu version..."
     CURRENT_VERSION=$(lsb_release -sr)
     if [[ "$CURRENT_VERSION" != "24.04" ]]; then
-        echo "🚀 Upgrading Ubuntu to 24.04..."
+        echo "🚀 Preparing to upgrade Ubuntu to 24.04 LTS..."
+        # Ensure package sources are up to date
         sudo apt update
         sudo apt dist-upgrade -y
         sudo apt install update-manager-core -y
-        sudo do-release-upgrade -d -f DistUpgradeViewNonInteractive
+        # Verify LTS upgrade configuration
+        if ! grep -q "Prompt=lts" /etc/update-manager/release-upgrades; then
+            echo "Configuring system for LTS upgrades..."
+            sudo sed -i 's/Prompt=.*/Prompt=lts/' /etc/update-manager/release-upgrades || \
+                echo "Prompt=lts" | sudo tee -a /etc/update-manager/release-upgrades
+        fi
+        # Perform the upgrade
+        echo "Running LTS upgrade to 24.04..."
+        sudo do-release-upgrade -f DistUpgradeViewNonInteractive
         sudo apt update && sudo apt upgrade -y
         sudo apt full-upgrade -y
         echo "✅ Ubuntu upgraded to $(lsb_release -sr). Rebooting..."
