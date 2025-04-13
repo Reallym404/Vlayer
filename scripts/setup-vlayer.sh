@@ -16,6 +16,10 @@ upgrade_ubuntu() {
     CURRENT_VERSION=$(lsb_release -sr)
     if [[ "$CURRENT_VERSION" != "24.04" ]]; then
         echo "🚀 Preparing to upgrade Ubuntu to 24.04 LTS..."
+        # Remove problematic git-lfs repository explicitly
+        echo "Removing problematic git-lfs repository..."
+        sudo rm -f /etc/apt/sources.list.d/*git-lfs* 2>/dev/null || true
+        sudo sed -i '/packagecloud.io\/github\/git-lfs/d' /etc/apt/sources.list 2>/dev/null || true
         # Clear APT caches and locks
         echo "Clearing APT caches and locks..."
         sudo rm -rf /var/lib/apt/lists/*
