@@ -57,8 +57,16 @@ upgrade_ubuntu() {
         echo "Restoring third-party repositories..."
         sudo mv /etc/apt/sources.list.d/backup/*.list /etc/apt/sources.list.d/ 2>/dev/null || true
         sudo apt update
-        echo "✅ Ubuntu upgraded to $(lsb_release -sr). Rebooting..."
-        sudo reboot
+        echo "✅ Ubuntu upgraded to $(lsb_release -sr)."
+        # Check if running in a containerized environment (e.g., Codespaces)
+        if ! systemctl is-system-running >/dev/null 2>&1 || [ -f /.dockerenv ] || [ -n "$CODESPACES" ]; then
+            echo "⚠️ Running in a containerized environment (e.g., Codespaces). Cannot reboot automatically."
+            echo "Please stop and restart your Codespaces session, then rerun the script to continue to 24.04."
+            exit 0
+        else
+            echo "Rebooting..."
+            sudo reboot
+        fi
     else
         echo "✅ Ubuntu is already at 24.04."
     fi
