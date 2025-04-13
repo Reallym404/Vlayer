@@ -35,7 +35,6 @@ This guide shows you how to set up vLayer projects (Email Proof, Teleport, Time 
 ```bash
 git clone https://github.com/Gmhax/Vlayer.git
 cd Vlayer
-git pull origin main
 ```
 
 ### 2.  Run the Setup Script
