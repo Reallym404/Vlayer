@@ -76,8 +76,21 @@ install_dependencies() {
 
     # Install Foundry
     if ! command -v forge &> /dev/null; then
+        echo "Installing Foundry..."
         curl -L https://foundry.paradigm.xyz/ | bash
-        source ~/.bashrc
+        # Ensure PATH is updated
+        [ -f ~/.bashrc ] && source ~/.bashrc
+        [ -f ~/.profile ] && source ~/.profile
+        # Verify foundryup is available
+        if ! command -v foundryup &> /dev/null; then
+            echo "⚠️ foundryup not found in PATH. Trying to locate it..."
+            if [ -f ~/.foundry/bin/foundryup ]; then
+                export PATH="$HOME/.foundry/bin:$PATH"
+            else
+                echo "Error: foundryup installation failed. Please run 'curl -L https://foundry.paradigm.xyz/ | bash' manually, then 'foundryup'."
+                exit 1
+            fi
+        fi
         foundryup
     else
         echo "Foundry already installed."
@@ -85,17 +98,20 @@ install_dependencies() {
 
     # Install Bun
     if ! command -v bun &> /dev/null; then
+        echo "Installing Bun..."
         curl -fsSL https://bun.sh/install | bash
-        source ~/.profile
+        [ -f ~/.bashrc ] && source ~/.bashrc
+        [ -f ~/.profile ] && source ~/.profile
     else
         echo "Bun already installed."
     fi
 
     # Install vLayer CLI
     if ! command -v vlayer &> /dev/null; then
+        echo "Installing vLayer CLI..."
         curl -SL https://install.vlayer.xyz/ | bash
-        source ~/.bashrc
-        vlayerup
+        [ -f ~/.bashrc ] && source ~/.bashrc
+        [ -f ~/.profile ] && source ~/.profile
     else
         echo "vLayer CLI already installed."
     fi
