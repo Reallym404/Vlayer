@@ -18,110 +18,50 @@ First get faucet :  Op Sepolia Faucet:
 
 
 
-## Use Codespace to deploy https://github.com/codespaces
-- Click blank template 
+# Vlayer Setup Guide
 
-## 1. Steps to Upgrade from 20.04 to 24.04
-```bash
-sudo apt dist-upgrade -y
-sudo apt install update-manager-core
-sudo do-release-upgrade
-sudo apt update && sudo apt upgrade -y 
-sudo apt full-upgrade
-sudo do-release-upgrade -d
-lsb_release -a
-```
-- Output: Description: Ubuntu 24.04.2 LTS
+This guide shows you how to set up vLayer projects (Email Proof, Teleport, Time Travel, Web Proof) with one command. The script automates everything, including creating the `.env` file by prompting for your API token and private key if needed.
 
-## 2. Clone repo
+## Prerequisites
+- Ubuntu (any version; the script upgrades to 24.04 if needed).
+- Internet connection.
+- Sudo privileges.
+- Your vLayer API token and a testnet private key (you’ll be prompted to enter them if not already set).
+
+## Setup Instructions
+
+### 1. Clone the Repository
+
 ```bash
-git clone https://github.com/Gmhax/Vlayer.git 
+git clone https://github.com/Gmhax/Vlayer.git
 cd Vlayer
-git add scripts/setup-vlayer.sh
+git pull origin main
 ```
 
-## 3. Create the .env
+### 2.  Run the Setup Script
 ```bash
-mkdir -p ~/Vlayer
-nano ~/Vlayer/.env
-```
-- Paste: 
-```bash
-VLAYER_API_TOKEN=YOUR_VLAYER_API_TOKEN
-EXAMPLES_TEST_PRIVATE_KEY=0xYOUR-PRIVATE-KEY
-CHAIN_NAME=optimismSepolia
-JSON_RPC_URL=https://sepolia.optimism.io
-```
-<pre> 
-- Steps to get your API token:
-
-- Go to https://dashboard.vlayer.xyz/
-
-- Click "Create new JWT token"
-
-- Add any URL
-
-- Copy your API token and save it somewhere safe 
- </pre>
-
-- Secure the .env File
-```bash
-chmod 600 ~/Vlayer/.env
-echo ".env" >> ~/Vlayer/.gitignore
+chmod +x scripts/setup-vlayer.sh
 ```
 
-
-## 4. Script Executable
+### 3.  Run it for a specific Features:
 ```bash
-chmod +x ./setup-vlayer.sh
-```
-
-## 5. Create the Symbolic 
-```bash
-mkdir -p ~/Vlayer/scripts
-ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-email-proof.sh
-ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-teleport.sh
-ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-time-travel.sh
-ln -s setup-vlayer.sh ~/Vlayer/scripts/setup-web-proof.sh
-```
-
-
-## EXECUTE THE DIFFERENT FEATURES
-
-- Time travel
-```bash
-git add .
-git commit -m "Prep: Setup complete from script"
+./scripts/setup-vlayer.sh email-proof
 ```
 ```bash
-setup-time-travel.sh
+./scripts/setup-vlayer.sh teleport
+```
+```bash
+./scripts/setup-vlayer.sh time-travel
+```
+```bash
+./scripts/setup-vlayer.sh web-proof
+```
+- Or set up all features:
+```bash
+./scripts/setup-vlayer.sh all
 ```
 
--Email proof
-```bash
-git add .
-git commit -m "Prep: Setup complete from script"
-```
-```bash
-setup-email-proof.sh
-```
 
-- Teleport 
-```bash
-git add .
-git commit -m "Prep: Setup complete from script"
-```
-```bash
-setup-teleport.sh
-```
-- Web proof
-```bash
-git add .
-git commit -m "Prep: Setup complete from script"
-```
-```bash
-setup-web-proof.sh
-```
 
 
 ## Output on your dashboard https://dashboard.vlayer.xyz/history
