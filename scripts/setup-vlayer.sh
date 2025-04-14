@@ -74,6 +74,16 @@ install_dependencies() {
     # Core system deps
     sudo apt-get update && sudo apt-get install -y git curl unzip build-essential
 
+    # Check and fix glibc
+    echo "Checking glibc version..."
+    GLIBC_VERSION=$(ldd --version | head -n1 | awk '{print $NF}')
+    echo "Detected glibc version: $GLIBC_VERSION"
+    if [[ "$GLIBC_VERSION" < "2.39" ]]; then
+        echo "⚠️ glibc version too old, reinstalling libc6 and libm6..."
+        sudo apt-get install --reinstall -y libc6 libm6
+        sudo ldconfig
+    fi
+
     # Install Foundry
     if ! command -v forge &> /dev/null; then
         echo "Installing Foundry..."
@@ -109,56 +119,86 @@ install_dependencies() {
     # Install vLayer CLI
     if ! command -v vlayer &> /dev/null; then
         echo "Installing vLayer CLI..."
-        curl -SL https://install.vlayer.xyz/ | bash
-        # Ensure PATH is updated
-        [ -f ~/.bashrc ] && source ~/.bashrc
-        [ -f ~/.profile ] && source ~/.profile
-        # Debug PATH and search for vlayerup
-        echo "Debug: Current PATH: $PATH"
-        echo "Debug: Searching for vlayerup..."
-        VLAYERUP_PATH=$(find ~ -name vlayerup -type f 2>/dev/null | head -n 1)
-        if [ -n "$VLAYERUP_PATH" ]; then
-            echo "Debug: Found vlayerup at $VLAYERUP_PATH"
-            chmod +x "$VLAYERUP_PATH"
-            VLAYERUP_DIR=$(dirname "$VLAYERUP_PATH")
-            export PATH="$VLAYERUP_DIR:$PATH"
-        else
-            echo "Debug: vlayerup not found via find."
-        fi
-        # Run vlayerup with retries
-        for attempt in {1..3}; do
-            if command -v vlayerup &> /dev/null; then
-                echo "Running vlayerup to install vlayer (attempt $attempt)..."
-                vlayerup
-                [ -f ~/.bashrc ] && source ~/.bashrc
-                [ -f ~/.profile ] && source ~/.profile
-                break
+        for attempt in {1..2}; do
+            curl -SL https://install.vlayer.xyz/ | bash
+            # Ensure PATH is updated
+            [ -f ~/.bashrc ] && source ~/.bashrc
+            [ -f ~/.profile ] && source ~/.profile
+            # Debug PATH and search for vlayerup
+            echo "Debug: Current PATH: $PATH"
+            echo "Debug: Searching for vlayerup..."
+            VLAYERUP_PATH=$(find ~ -name vlayerup -type f 2>/dev/null | head -n 1)
+            if [ -n "$VLAYERUP_PATH" ]; then
+                echo "Debug: Found vlayerup at $VLAYERUP_PATH"
+                chmod +x "$VLAYERUP_PATH"
+                VLAYERUP_DIR=$(dirname "$VLAYERUP_PATH")
+                export PATH="$VLAYERUP_DIR:$PATH"
             else
-                echo "⚠️ vlayerup not found, retrying after delay (attempt $attempt)..."
-                sleep 2
+                echo "Debug: vlayerup not found via find."
             fi
-        done
-        # Verify vlayer is available
-        if ! command -v vlayer &> /dev/null; then
-            echo "⚠️ vlayer not found in PATH. Trying to locate it..."
-            for path in ~/.vlayer/bin ~/.vlayerup/bin ~/.local/bin ~/.bin /usr/local/bin; do
-                if [ -f "$path/vlayer" ]; then
-                    export PATH="$path:$PATH"
-                    echo "Found vlayer in $path, added to PATH."
+            # Run vlayerup with retries
+            for sub_attempt in {1..3}; do
+                if command -v vlayerup &> /dev/null; then
+                    echo "Running vlayerup to install vlayer (attempt $sub_attempt)..."
+                    vlayerup
+                    [ -f ~/.bashrc ] && source ~/.bashrc
+                    [ -f ~/.profile ] && source ~/.profile
                     break
+                else
+                    echo "⚠️ vlayerup not found, retrying after delay (attempt $sub_attempt)..."
+                    sleep 2
                 fi
             done
-            if ! command -v vlayer &> /dev/null; then
+            # Verify vlayer is available
+            if command -v vlayer &> /dev/null; then
+                # Test vlayer to catch glibc issues
+                if vlayer --version >/dev/null 2>&1; then
+                    echo "vLayer CLI installed successfully."
+                    break
+                else
+                    echo "⚠️ vlayer installed but failed to run (possible glibc issue). Reinstalling..."
+                    sudo apt-get install --reinstall -y libc6 libm6
+                    sudo ldconfig
+                    continue
+                fi
+            else
+                echo "⚠️ vlayer not found in PATH. Trying to locate it..."
+                for path in ~/.vlayer/bin ~/.vlayerup/bin ~/.local/bin ~/.bin /usr/local/bin; do
+                    if [ -f "$path/vlayer" ]; then
+                        export PATH="$path:$PATH"
+                        echo "Found vlayer in $path, added to PATH."
+                        break
+                    fi
+                done
+                if command -v vlayer &> /dev/null && vlayer --version >/dev/null 2>&1; then
+                    echo "vLayer CLI installed successfully."
+                    break
+                fi
+            fi
+            if [ "$attempt" -eq 2 ]; then
                 echo "Error: vLayer CLI installation failed after retries. Please run the following manually:"
                 echo "  curl -SL https://install.vlayer.xyz/ | bash"
                 echo "  source ~/.bashrc"
                 echo "  vlayerup"
-                echo "Then verify with: command -v vlayer"
+                echo "Then verify with: vlayer --version"
+                exit 1
+            fi
+        done
+    else
+        echo "vLayer CLI already installed."
+        # Verify vlayer works
+        if ! vlayer --version >/dev/null 2>&1; then
+            echo "⚠️ vlayer installed but not working (possible glibc issue). Reinstalling libc6 and libm6..."
+            sudo apt-get install --reinstall -y libc6 libm6
+            sudo ldconfig
+            if ! vlayer --version >/dev/null 2>&1; then
+                echo "Error: vLayer CLI still not working. Please run manually:"
+                echo "  sudo apt-get install --reinstall -y libc6 libm6"
+                echo "  sudo ldconfig"
+                echo "  vlayer --version"
                 exit 1
             fi
         fi
-    else
-        echo "vLayer CLI already installed."
     fi
 
     echo "✅ Dependencies installed."
