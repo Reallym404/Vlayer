@@ -270,11 +270,11 @@ EOL
 # Main function to set up all projects
 main() {
     # Accept project type as argument or prompt
-    PROJECT_TYPE=${1:-}
+    PROJECT_TYPE="${1:-}"
     if [ -z "$PROJECT_TYPE" ]; then
         echo "Available project types: all, email-proof, teleport, time-travel, web-proof"
         read -p "Enter project type to set up [default: all]: " PROJECT_TYPE
-        PROJECT_TYPE=${PROJECT_TYPE:-all}
+        PROJECT_TYPE="${PROJECT_TYPE:-all}"
     fi
 
     # Upgrade Ubuntu
@@ -304,4 +304,25 @@ main() {
             setup_project "my-email-proof" "simple-email-proof" "Email Proof"
             ;;
         teleport)
-            setup_project "my-simple-teleport" "simple-
+            setup_project "my-simple-teleport" "simple-teleport" "Teleport"
+            ;;
+        time-travel)
+            setup_project "my-simple-time-travel" "simple-time-travel" "Time Travel"
+            ;;
+        web-proof)
+            setup_project "my-simple-web-proof" "simple-web-proof" "Web Proof"
+            ;;
+        *)
+            echo "Error: Invalid project type. Use: all, email-proof, teleport, time-travel, web-proof"
+            exit 1
+            ;;
+    esac
+
+    # Commit changes
+    git add .
+    git commit -m "Setup complete for $PROJECT_TYPE" || echo "No changes to commit."
+    echo "🎉 All done! vLayer setup complete for $PROJECT_TYPE."
+}
+
+# Run main function with any passed argument
+main "$@"
