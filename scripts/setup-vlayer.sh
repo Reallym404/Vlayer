@@ -14,26 +14,29 @@ DEFAULT_JSON_RPC_URL="https://sepolia.optimism.io"
 upgrade_ubuntu() {
     echo "🔍 Checking Ubuntu version..."
     CURRENT_VERSION=$(lsb_release -sr)
+    echo "Current Ubuntu version: $CURRENT_VERSION"
     if [[ "$CURRENT_VERSION" != "24.04" ]]; then
         echo "🚀 Preparing to upgrade Ubuntu to 24.04 LTS..."
-        # Remove problematic git-lfs repository explicitly
-        echo "Removing problematic git-lfs repository..."
-        sudo rm -f /etc/apt/sources.list.d/*git-lfs* 2>/dev/null || true
+        # Clean up problematic third-party repositories
+        echo "Removing third-party repositories..."
+        sudo rm -f /etc/apt/sources.list.d/* 2>/dev/null || true
+        sudo sed -i '/packages.microsoft.com/d' /etc/apt/sources.list 2>/dev/null || true
+        sudo sed -i '/repo.anaconda.com/d' /etc/apt/sources.list 2>/dev/null || true
+        sudo sed -i '/dl.yarnpkg.com/d' /etc/apt/sources.list 2>/dev/null || true
         sudo sed -i '/packagecloud.io\/github\/git-lfs/d' /etc/apt/sources.list 2>/dev/null || true
         # Clear APT caches and locks
         echo "Clearing APT caches and locks..."
         sudo rm -rf /var/lib/apt/lists/*
         sudo rm -f /var/lib/dpkg/lock-frontend /var/cache/apt/archives/lock
         sudo dpkg --configure -a
-        # Backup and disable third-party repositories
-        echo "Backing up and disabling third-party repositories..."
-        sudo mkdir -p /etc/apt/sources.list.d/backup
-        sudo mv /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/backup/ 2>/dev/null || true
-        # Ensure only Ubuntu repositories are active
-        sudo bash -c 'echo "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc) main restricted universe multiverse" > /etc/apt/sources.list'
-        sudo bash -c 'echo "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc)-updates main restricted universe multiverse" >> /etc/apt/sources.list'
-        sudo bash -c 'echo "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc)-backports main restricted universe multiverse" >> /etc/apt/sources.list'
-        sudo bash -c 'echo "deb http://security.ubuntu.com/ubuntu $(lsb_release -sc)-security main restricted universe multiverse" >> /etc/apt/sources.list'
+        # Set up clean Ubuntu noble repositories
+        echo "Setting up Ubuntu 24.04 (noble) repositories..."
+        sudo bash -c 'cat > /etc/apt/sources.list << EOL
+deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
+deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
+deb http://archive.ubuntu.com/ubuntu noble-backports main restricted universe multiverse
+deb http://security.ubuntu.com/ubuntu noble-security main restricted universe multiverse
+EOL'
         # Update and fix packages
         sudo apt clean
         sudo apt update --fix-missing || {
@@ -42,28 +45,56 @@ upgrade_ubuntu() {
         }
         sudo apt install -f -y
         sudo apt autoremove -y
-        # Force-reinstall critical packages
-        echo "Reinstalling python3-apt and ubuntu-advantage-tools..."
+        # Install upgrade tools
+        echo "Installing upgrade tools..."
         sudo apt install --reinstall -y python3-apt ubuntu-advantage-tools update-manager-core
         sudo apt dist-upgrade -y
-        # Verify LTS upgrade configuration
+        # Configure for LTS upgrades
         if ! grep -q "Prompt=lts" /etc/update-manager/release-upgrades; then
             echo "Configuring system for LTS upgrades..."
             sudo sed -i 's/Prompt=.*/Prompt=lts/' /etc/update-manager/release-upgrades || \
                 echo "Prompt=lts" | sudo tee -a /etc/update-manager/release-upgrades
         fi
-        # Perform the upgrade
+        # Attempt upgrade
         echo "Running LTS upgrade to 24.04..."
-        sudo do-release-upgrade -f DistUpgradeViewNonInteractive --allow-third-party
+        sudo do-release-upgrade -f DistUpgradeViewNonInteractive --allow-third-party || {
+            echo "do-release-upgrade failed, forcing noble upgrade..."
+            sudo apt full-upgrade -y
+        }
         sudo apt update && sudo apt upgrade -y
         sudo apt full-upgrade -y
-        # Restore third-party repositories
-        echo "Restoring third-party repositories..."
-        sudo mv /etc/apt/sources.list.d/backup/*.list /etc/apt/sources.list.d/ 2>/dev/null || true
-        sudo apt update
-        echo "✅ Ubuntu upgraded to $(lsb_release -sr)."
+        # Verify upgrade
+        NEW_VERSION=$(lsb_release -sr)
+        echo "New Ubuntu version: $NEW_VERSION"
+        if [[ "$NEW_VERSION" != "24.04" ]]; then
+            echo "Error: Failed to upgrade to Ubuntu 24.04 (current version: $NEW_VERSION)."
+            echo "Please check /var/log/dist-upgrade for details or manually run:"
+            echo "  sudo do-release-upgrade -f DistUpgradeViewNonInteractive"
+            exit 1
+        fi
+        # Verify glibc
+        GLIBC_VERSION=$(ldd --version | head -n1 | awk '{print $NF}')
+        echo "Detected glibc version after upgrade: $GLIBC_VERSION"
+        if [[ "$GLIBC_VERSION" < "2.39" ]]; then
+            echo "Error: glibc version ($GLIBC_VERSION) is too old after upgrade. Expected 2.39."
+            exit 1
+        fi
+        echo "✅ Ubuntu upgraded to $NEW_VERSION with glibc $GLIBC_VERSION."
     else
         echo "✅ Ubuntu is already at 24.04."
+        GLIBC_VERSION=$(ldd --version | head -n1 | awk '{print $NF}')
+        echo "Detected glibc version: $GLIBC_VERSION"
+        if [[ "$GLIBC_VERSION" < "2.39" ]]; then
+            echo "⚠️ glibc version too old, reinstalling libc6..."
+            sudo apt-get install --reinstall -y libc6
+            sudo ldconfig
+            GLIBC_VERSION=$(ldd --version | head -n1 | awk '{print $NF}')
+            echo "New glibc version: $GLIBC_VERSION"
+            if [[ "$GLIBC_VERSION" < "2.39" ]]; then
+                echo "Error: glibc still too old ($GLIBC_VERSION)."
+                exit 1
+            fi
+        fi
     fi
 }
 
@@ -74,16 +105,6 @@ install_dependencies() {
     # Core system deps
     sudo apt-get update && sudo apt-get install -y git curl unzip build-essential
 
-    # Check and fix glibc
-    echo "Checking glibc version..."
-    GLIBC_VERSION=$(ldd --version | head -n1 | awk '{print $NF}')
-    echo "Detected glibc version: $GLIBC_VERSION"
-    if [[ "$GLIBC_VERSION" < "2.39" ]]; then
-        echo "⚠️ glibc version too old, reinstalling libc6 and libm6..."
-        sudo apt-get install --reinstall -y libc6 libm6
-        sudo ldconfig
-    fi
-
     # Install Foundry
     if ! command -v forge &> /dev/null; then
         echo "Installing Foundry..."
@@ -91,7 +112,7 @@ install_dependencies() {
         # Ensure PATH is updated
         [ -f ~/.bashrc ] && source ~/.bashrc
         [ -f ~/.profile ] && source ~/.profile
-        # Verify foundryup is available
+        # Verify foundryup
         if ! command -v foundryup &> /dev/null; then
             echo "⚠️ foundryup not found in PATH. Trying to locate it..."
             if [ -f ~/.foundry/bin/foundryup ]; then
@@ -110,6 +131,7 @@ install_dependencies() {
     if ! command -v bun &> /dev/null; then
         echo "Installing Bun..."
         curl -fsSL https://bun.sh/install | bash
+        # Ensure PATH is updated
         [ -f ~/.bashrc ] && source ~/.bashrc
         [ -f ~/.profile ] && source ~/.profile
     else
@@ -149,15 +171,14 @@ install_dependencies() {
                     sleep 2
                 fi
             done
-            # Verify vlayer is available
+            # Verify vlayer
             if command -v vlayer &> /dev/null; then
-                # Test vlayer to catch glibc issues
                 if vlayer --version >/dev/null 2>&1; then
                     echo "vLayer CLI installed successfully."
                     break
                 else
-                    echo "⚠️ vlayer installed but failed to run (possible glibc issue). Reinstalling..."
-                    sudo apt-get install --reinstall -y libc6 libm6
+                    echo "⚠️ vlayer installed but failed to run (possible glibc issue). Reinstalling libc6..."
+                    sudo apt-get install --reinstall -y libc6
                     sudo ldconfig
                     continue
                 fi
@@ -176,7 +197,7 @@ install_dependencies() {
                 fi
             fi
             if [ "$attempt" -eq 2 ]; then
-                echo "Error: vLayer CLI installation failed after retries. Please run the following manually:"
+                echo "Error: vLayer CLI installation failed after retries. Please run manually:"
                 echo "  curl -SL https://install.vlayer.xyz/ | bash"
                 echo "  source ~/.bashrc"
                 echo "  vlayerup"
@@ -186,14 +207,13 @@ install_dependencies() {
         done
     else
         echo "vLayer CLI already installed."
-        # Verify vlayer works
         if ! vlayer --version >/dev/null 2>&1; then
-            echo "⚠️ vlayer installed but not working (possible glibc issue). Reinstalling libc6 and libm6..."
-            sudo apt-get install --reinstall -y libc6 libm6
+            echo "⚠️ vlayer installed but not working (possible glibc issue). Reinstalling libc6..."
+            sudo apt-get install --reinstall -y libc6
             sudo ldconfig
             if ! vlayer --version >/dev/null 2>&1; then
                 echo "Error: vLayer CLI still not working. Please run manually:"
-                echo "  sudo apt-get install --reinstall -y libc6 libm6"
+                echo "  sudo apt-get install --reinstall -y libc6"
                 echo "  sudo ldconfig"
                 echo "  vlayer --version"
                 exit 1
@@ -216,7 +236,7 @@ setup_env() {
     if [ -f "$ENV_FILE" ]; then
         echo "Existing .env file found. Loading..."
         source "$ENV_FILE"
-        # Ensure defaults if not set in .env
+        # Ensure defaults if not set
         CHAIN_NAME=${CHAIN_NAME:-$DEFAULT_CHAIN_NAME}
         JSON_RPC_URL=${JSON_RPC_URL:-$DEFAULT_JSON_RPC_URL}
     else
@@ -224,7 +244,7 @@ setup_env() {
         read -p "Enter your vLayer API token: " VLAYER_API_TOKEN
         read -p "Enter your test private key (e.g., 0x...): " EXAMPLES_TEST_PRIVATE_KEY
 
-        # Create .env file with defaults
+        # Create .env file
         cat > "$ENV_FILE" << EOL
 VLAYER_API_TOKEN=$VLAYER_API_TOKEN
 EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
