@@ -113,6 +113,17 @@ install_dependencies() {
         # Ensure PATH is updated
         [ -f ~/.bashrc ] && source ~/.bashrc
         [ -f ~/.profile ] && source ~/.profile
+        # Debug PATH and vlayerup location
+        echo "Debug: Current PATH: $PATH"
+        echo "Debug: Searching for vlayerup..."
+        VLAYERUP_PATH=$(find ~ -name vlayerup -type f 2>/dev/null | head -n 1)
+        if [ -n "$VLAYERUP_PATH" ]; then
+            echo "Debug: Found vlayerup at $VLAYERUP_PATH"
+            VLAYERUP_DIR=$(dirname "$VLAYERUP_PATH")
+            export PATH="$VLAYERUP_DIR:$PATH"
+        else
+            echo "Debug: vlayerup not found via find."
+        fi
         # Run vlayerup with retries
         for attempt in {1..3}; do
             if command -v vlayerup &> /dev/null; then
@@ -141,6 +152,7 @@ install_dependencies() {
                 echo "  curl -SL https://install.vlayer.xyz/ | bash"
                 echo "  source ~/.bashrc"
                 echo "  vlayerup"
+                echo "Then verify with: command -v vlayer"
                 exit 1
             fi
         fi
@@ -198,118 +210,4 @@ setup_repo() {
     if [ -d "~/Vlayer/.git" ]; then
         echo "Repository already exists. Pulling latest changes..."
         cd ~/Vlayer
-        git pull origin main || echo "No updates available or minor error, continuing..."
-    else
-        echo "Cloning repository..."
-        rm -rf ~/Vlayer  # Clear any non-git directory
-        git clone https://github.com/Gmhax/Vlayer.git ~/Vlayer
-        cd ~/Vlayer
-    fi
-    echo "✅ Repository ready."
-}
-
-# Function to set up a single vLayer project
-setup_project() {
-    local project_dir=$1
-    local template=$2
-    local project_name=$3
-
-    echo "🛠 Setting up $project_name..."
-    mkdir -p "$project_dir"
-    cd "$project_dir"
-
-    # Initialize vLayer project
-    if [ ! -f "foundry.toml" ]; then
-        echo "Initializing vLayer project with template $template..."
-        vlayer init --template "$template"
-    else
-        echo "vLayer project already initialized in $project_dir."
-    fi
-
-    # Build the project
-    echo "Building project..."
-    forge build
-
-    # Navigate to vlayer directory
-    cd vlayer
-
-    # Install Bun dependencies
-    echo "Installing Bun dependencies..."
-    bun install
-
-    # Create .env.testnet.local
-    echo "Creating environment file for $project_name..."
-    cat > .env.testnet.local << EOL
-VLAYER_API_TOKEN=$VLAYER_API_TOKEN
-EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
-CHAIN_NAME=$CHAIN_NAME
-JSON_RPC_URL=$JSON_RPC_URL
-EOL
-
-    # Run prove:testnet
-    echo "Running prove:testnet for $project_name..."
-    bun run prove:testnet
-
-    echo "✅ $project_name setup complete!"
-    cd ~/Vlayer
-}
-
-# Main function to set up all projects
-main() {
-    # Accept project type as argument or prompt
-    PROJECT_TYPE=${1:-}
-    if [ -z "$PROJECT_TYPE" ]; then
-        echo "Available project types: all, email-proof, teleport, time-travel, web-proof"
-        read -p "Enter project type to set up [default: all]: " PROJECT_TYPE
-        PROJECT_TYPE=${PROJECT_TYPE:-all}
-    fi
-
-    # Upgrade Ubuntu
-    upgrade_ubuntu
-
-    # Install dependencies
-    install_dependencies
-
-    # Set up .env
-    setup_env
-
-    # Set up repo
-    setup_repo
-
-    # Change to repo directory
-    cd ~/Vlayer
-
-    # Set up projects based on input
-    case "$PROJECT_TYPE" in
-        all)
-            setup_project "my-email-proof" "simple-email-proof" "Email Proof"
-            setup_project "my-simple-teleport" "simple-teleport" "Teleport"
-            setup_project "my-simple-time-travel" "simple-time-travel" "Time Travel"
-            setup_project "my-simple-web-proof" "simple-web-proof" "Web Proof"
-            ;;
-        email-proof)
-            setup_project "my-email-proof" "simple-email-proof" "Email Proof"
-            ;;
-        teleport)
-            setup_project "my-simple-teleport" "simple-teleport" "Teleport"
-            ;;
-        time-travel)
-            setup_project "my-simple-time-travel" "simple-time-travel" "Time Travel"
-            ;;
-        web-proof)
-            setup_project "my-simple-web-proof" "simple-web-proof" "Web Proof"
-            ;;
-        *)
-            echo "Error: Invalid project type. Use: all, email-proof, teleport, time-travel, web-proof"
-            exit 1
-            ;;
-    esac
-
-    # Commit changes
-    git add .
-    git commit -m "Setup complete for $PROJECT_TYPE" || echo "No changes to commit."
-    echo "🎉 All done! vLayer setup complete for $PROJECT_TYPE."
-}
-
-# Run main function with any passed argument
-main "$@"
+        git pull origin main || echo "No updates available or minor error, continuing
