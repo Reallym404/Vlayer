@@ -23,9 +23,9 @@ upgrade_ubuntu() {
         sudo apt install -f -y
         sudo apt autoremove -y
         sudo apt autoclean
-        # Purge conflicting tools
-        echo "Purging conflicting upgrade tools..."
-        sudo apt purge -y ubuntu-advantage-tools update-manager-core python3-update-manager ubuntu-release-upgrader-core 2>/dev/null || true
+        # Purge conflicting Python and upgrade tools
+        echo "Purging conflicting Python and upgrade tools..."
+        sudo apt purge -y python3-distutils python3-lib2to3 python3-apt python3-update-manager ubuntu-release-upgrader-core update-manager-core ubuntu-advantage-tools 2>/dev/null || true
         # Clean up all third-party repositories
         echo "Removing all third-party repositories..."
         sudo rm -rf /etc/apt/sources.list.d/* 2>/dev/null || true
@@ -62,9 +62,9 @@ EOL'
             fi
         done
         sudo apt install -f -y
-        # Install upgrade dependencies explicitly
-        echo "Installing upgrade dependencies..."
-        sudo apt install -y python3 python3-apt python3-distutils
+        # Install Python and upgrade dependencies for 24.04
+        echo "Installing Python and upgrade dependencies..."
+        sudo apt install -y python3 python3-apt
         sudo apt install -y python3-update-manager ubuntu-release-upgrader-core
         sudo apt install -y update-manager-core
         sudo apt dist-upgrade -y
