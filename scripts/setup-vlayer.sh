@@ -17,9 +17,18 @@ upgrade_ubuntu() {
     echo "Current Ubuntu version: $CURRENT_VERSION"
     if [[ "$CURRENT_VERSION" != "24.04" ]]; then
         echo "🚀 Preparing to upgrade Ubuntu to 24.04 LTS..."
-        # Clean up problematic third-party repositories
-        echo "Removing third-party repositories..."
-        sudo rm -f /etc/apt/sources.list.d/* 2>/dev/null || true
+        # Fix broken packages
+        echo "Fixing broken packages..."
+        sudo dpkg --configure -a
+        sudo apt install -f -y
+        sudo apt autoremove -y
+        sudo apt autoclean
+        # Purge conflicting tools
+        echo "Purging conflicting upgrade tools..."
+        sudo apt purge -y ubuntu-advantage-tools update-manager-core python3-update-manager ubuntu-release-upgrader-core 2>/dev/null || true
+        # Clean up all third-party repositories
+        echo "Removing all third-party repositories..."
+        sudo rm -rf /etc/apt/sources.list.d/* 2>/dev/null || true
         sudo sed -i '/packages.microsoft.com/d' /etc/apt/sources.list 2>/dev/null || true
         sudo sed -i '/repo.anaconda.com/d' /etc/apt/sources.list 2>/dev/null || true
         sudo sed -i '/dl.yarnpkg.com/d' /etc/apt/sources.list 2>/dev/null || true
@@ -37,24 +46,32 @@ deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe mult
 deb http://archive.ubuntu.com/ubuntu noble-backports main restricted universe multiverse
 deb http://security.ubuntu.com/ubuntu noble-security main restricted universe multiverse
 EOL'
-        # Update and fix packages
+        # Update package lists
+        echo "Updating package lists..."
         sudo apt clean
-        sudo apt update --fix-missing || {
-            echo "Warning: apt update had issues, retrying..."
-            sudo apt update
-        }
+        for attempt in {1..3}; do
+            if sudo apt update --fix-missing; then
+                break
+            else
+                echo "Warning: apt update failed, retrying ($attempt/3)..."
+                sleep 2
+                if [ "$attempt" -eq 3 ]; then
+                    echo "Error: Failed to update package lists after retries."
+                    exit 1
+                fi
+            fi
+        done
         sudo apt install -f -y
-        sudo apt autoremove -y
-        # Install upgrade tools
-        echo "Installing upgrade tools..."
-        sudo apt install --reinstall -y python3-apt ubuntu-advantage-tools update-manager-core
+        # Install upgrade dependencies explicitly
+        echo "Installing upgrade dependencies..."
+        sudo apt install -y python3 python3-apt python3-distutils
+        sudo apt install -y python3-update-manager ubuntu-release-upgrader-core
+        sudo apt install -y update-manager-core
         sudo apt dist-upgrade -y
         # Configure for LTS upgrades
-        if ! grep -q "Prompt=lts" /etc/update-manager/release-upgrades; then
-            echo "Configuring system for LTS upgrades..."
-            sudo sed -i 's/Prompt=.*/Prompt=lts/' /etc/update-manager/release-upgrades || \
-                echo "Prompt=lts" | sudo tee -a /etc/update-manager/release-upgrades
-        fi
+        echo "Configuring system for LTS upgrades..."
+        sudo mkdir -p /etc/update-manager
+        echo "Prompt=lts" | sudo tee /etc/update-manager/release-upgrades
         # Attempt upgrade
         echo "Running LTS upgrade to 24.04..."
         sudo do-release-upgrade -f DistUpgradeViewNonInteractive --allow-third-party || {
