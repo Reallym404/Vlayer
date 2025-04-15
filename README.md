@@ -65,6 +65,11 @@ chmod +x scripts/setup-vlayer.sh
 ./scripts/setup-vlayer.sh all
 ```
 
+ - The default action is to keep your current version.
+*** zshrc (Y/I/N/O/D/Z) [default=N] ? y
+ - Select install the package maintainer's version 
+
+![image](https://github.com/user-attachments/assets/3b5dd1a7-a6e4-4d21-8085-28401af4ca88)
 
 
 
