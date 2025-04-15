@@ -43,8 +43,8 @@ upgrade_ubuntu() {
         sudo bash -c 'cat > /etc/apt/sources.list << EOL
 deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
 deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
-deb http://archive.ubuntu.com/ubuntu noble-backports main restricted universe multiverse
-deb http://security.ubuntu.com/ubuntu noble-security main restricted universe multiverse
+deb http://archive.Ubuntu.com/ubuntu noble-backports main restricted universe multiverse
+deb http://security.Ubuntu.com/ubuntu noble-security main restricted universe multiverse
 EOL'
         # Update package lists
         echo "Updating package lists..."
@@ -62,19 +62,32 @@ EOL'
             fi
         done
         sudo apt install -f -y
-        # Install Python and upgrade dependencies for 24.04
+        # Start DBus to fix system bus issues
+        echo "Starting DBus service..."
+        sudo mkdir -p /run/dbus
+        sudo dbus-daemon --system --fork || true
+        # Preconfigure Postfix to avoid prompts
+        echo "Preconfiguring Postfix to 'No configuration'..."
+        sudo debconf-set-selections <<< "postfix postfix/mailname string localhost"
+        sudo debconf-set-selections <<< "postfix postfix/main_mailer_type string 'No configuration'"
+        # Install Python and upgrade dependencies for 24.04 with noninteractive frontend
         echo "Installing Python and upgrade dependencies..."
-        sudo apt install -y python3 python3-apt
-        sudo apt install -y python3-update-manager ubuntu-release-upgrader-core
-        sudo apt install -y update-manager-core
+        export DEBIAN_FRONTEND=noninteractive
+        sudo apt install -y -o Dpkg::Options::="--force-confnew" python3 python3-apt
+        sudo apt install -y -o Dpkg::Options::="--force-confnew" python3-update-manager ubuntu-release-upgrader-core
+        sudo apt install -y -o Dpkg::Options::="--force-confnew" update-manager-core
+        sudo apt install -y -o Dpkg::Options::="--force-confnew" dbus
         sudo apt dist-upgrade -y
-        # Configure for LTS upgrades
+        # Configure for LTS upgrades with proper section headers
         echo "Configuring system for LTS upgrades..."
         sudo mkdir -p /etc/update-manager
-        echo "Prompt=lts" | sudo tee /etc/update-manager/release-upgrades
+        sudo bash -c 'cat > /etc/update-manager/release-upgrades << EOL
+[DEFAULT]
+Prompt=lts
+EOL'
         # Attempt upgrade
         echo "Running LTS upgrade to 24.04..."
-        sudo do-release-upgrade -f DistUpgradeViewNonInteractive --allow-third-party || {
+        sudo DEBIAN_FRONTEND=noninteractive do-release-upgrade -f DistUpgradeViewNonInteractive --allow-third-party || {
             echo "do-release-upgrade failed, forcing noble upgrade..."
             sudo apt full-upgrade -y
         }
