@@ -28,6 +28,11 @@ This guide shows you how to set up vLayer projects (Email Proof, Teleport, Time 
 - Sudo privileges.
 - Your vLayer API token and a testnet private key (you’ll be prompted to enter them if not already set).
 
+## NOTE: Use burner wallet
+
+## Use codespace to run this setup : https://github.com/codespaces
+- Click Blank
+
 ## Setup Instructions
 
 ### 1. Clone the Repository
@@ -59,6 +64,7 @@ chmod +x scripts/setup-vlayer.sh
 ```bash
 ./scripts/setup-vlayer.sh all
 ```
+
 
 
 
