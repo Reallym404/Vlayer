@@ -42,7 +42,7 @@ upgrade_ubuntu() {
         echo "Setting up Ubuntu 24.04 (noble) repositories..."
         sudo bash -c 'cat > /etc/apt/sources.list << EOL
 deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
-deb http://archive.ubuntu.com/ubuntu noble-updates main restricted universe multiverse
+deb http://archive.Ubuntu.com/ubuntu noble-updates main restricted universe multiverse
 deb http://archive.Ubuntu.com/ubuntu noble-backports main restricted universe multiverse
 deb http://security.Ubuntu.com/ubuntu noble-security main restricted universe multiverse
 EOL'
@@ -157,16 +157,54 @@ install_dependencies() {
         echo "Foundry already installed."
     fi
 
-    # Install Bun
+    # Install Bun with retries and explicit PATH update
     if ! command -v bun &> /dev/null; then
         echo "Installing Bun..."
-        curl -fsSL https://bun.sh/install | bash
-        # Ensure PATH is updated
-        [ -f ~/.bashrc ] && source ~/.bashrc
-        [ -f ~/.profile ] && source ~/.profile
+        for attempt in {1..3}; do
+            if curl -fsSL https://bun.sh/install | bash; then
+                # Explicitly add Bun to PATH
+                export PATH="$HOME/.bun/bin:$PATH"
+                # Update .bashrc for future sessions
+                echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
+                # Verify installation
+                if command -v bun &> /dev/null; then
+                    echo "Bun installed successfully."
+                    break
+                else
+                    echo "⚠️ Bun not found after install, retrying ($attempt/3)..."
+                    sleep 2
+                fi
+            else
+                echo "⚠️ Bun install failed, retrying ($attempt/3)..."
+                sleep 2
+            fi
+            if [ "$attempt" -eq 3 ]; then
+                echo "Error: Bun installation failed after retries. Please install manually:"
+                echo "  curl -fsSL https://bun.sh/install | bash"
+                echo "  export PATH=\"\$HOME/.bun/bin:\$PATH\""
+                echo "Then verify with: bun --version"
+                exit 1
+            fi
+        done
     else
         echo "Bun already installed."
     fi
+
+    # Verify Bun
+    if ! command -v bun &> /dev/null; then
+        echo "⚠️ Bun still not found in PATH. Trying to locate it..."
+        if [ -f ~/.bun/bin/bun ]; then
+            export PATH="$HOME/.bun/bin:$PATH"
+            echo 'export PATH="$HOME/.bun/bin:$PATH"' >> ~/.bashrc
+        else
+            echo "Error: Bun not found after installation. Please install manually:"
+            echo "  curl -fsSL https://bun.sh/install | bash"
+            echo "  export PATH=\"\$HOME/.bun/bin:\$PATH\""
+            echo "Then verify with: bun --version"
+            exit 1
+        fi
+    fi
+    echo "Bun version: $(bun --version)"
 
     # Install vLayer CLI
     if ! command -v vlayer &> /dev/null; then
