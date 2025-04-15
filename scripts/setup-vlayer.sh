@@ -41,7 +41,7 @@ upgrade_ubuntu() {
         # Set up clean Ubuntu noble repositories
         echo "Setting up Ubuntu 24.04 (noble) repositories..."
         sudo bash -c 'cat > /etc/apt/sources.list << EOL
-deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse
+deb http://archive.Ubuntu.com/ubuntu noble main restricted universe multiverse
 deb http://archive.Ubuntu.com/ubuntu noble-updates main restricted universe multiverse
 deb http://archive.Ubuntu.com/ubuntu noble-backports main restricted universe multiverse
 deb http://security.Ubuntu.com/ubuntu noble-security main restricted universe multiverse
@@ -398,13 +398,22 @@ setup_project() {
     echo "Installing Bun dependencies..."
     bun install
 
-    # Create .env.testnet.local using the loaded variables
-    echo "Creating environment file for $project_name..."
+    # Validate variables before creating .env.testnet.local
     echo "Debug: Using VLAYER_API_TOKEN=${VLAYER_API_TOKEN:0:5}... (truncated for security)"
     echo "Debug: Using EXAMPLES_TEST_PRIVATE_KEY=${EXAMPLES_TEST_PRIVATE_KEY:0:5}... (truncated for security)"
+    if [ -z "$VLAYER_API_TOKEN" ] || [ -z "$EXAMPLES_TEST_PRIVATE_KEY" ]; then
+        echo "Error: VLAYER_API_TOKEN or EXAMPLES_TEST_PRIVATE_KEY is empty."
+        echo "Please check $ENV_FILE or delete it to re-prompt:"
+        echo "  rm $ENV_FILE"
+        echo "Then rerun the script."
+        exit 1
+    fi
+
+    # Create .env.testnet.local using the loaded variables (fixed typo)
+    echo "Creating environment file for $project_name..."
     cat > .env.testnet.local << EOL
 VLAYER_API_TOKEN=$VLAYER_API_TOKEN
-EXAMPLES_TEST_PRIVATE_KEY=$EXPRODUCTS_TEST_PRIVATE_KEY
+EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
 CHAIN_NAME=$CHAIN_NAME
 JSON_RPC_URL=$JSON_RPC_URL
 EOL
