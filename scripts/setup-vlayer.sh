@@ -300,15 +300,31 @@ setup_env() {
     # Initialize defaults
     CHAIN_NAME=$DEFAULT_CHAIN_NAME
     JSON_RPC_URL=$DEFAULT_JSON_RPC_URL
+    VLAYER_API_TOKEN=""
+    EXAMPLES_TEST_PRIVATE_KEY=""
 
+    # Check if .env file exists
     if [ -f "$ENV_FILE" ]; then
-        echo "Existing .env file found. Loading..."
+        echo "Existing .env file found at $ENV_FILE. Loading..."
+        # Debug: Show file contents
+        echo "Debug: Contents of $ENV_FILE:"
+        cat "$ENV_FILE"
+        # Source the file to load variables
+        set -a
         source "$ENV_FILE"
-        # Ensure defaults if not set
+        set +a
+        # Reassign to ensure they're set in the current session
+        VLAYER_API_TOKEN=${VLAYER_API_TOKEN:-}
+        EXAMPLES_TEST_PRIVATE_KEY=${EXAMPLES_TEST_PRIVATE_KEY:-}
         CHAIN_NAME=${CHAIN_NAME:-$DEFAULT_CHAIN_NAME}
         JSON_RPC_URL=${JSON_RPC_URL:-$DEFAULT_JSON_RPC_URL}
+        echo "Loaded variables:"
+        echo "VLAYER_API_TOKEN=${VLAYER_API_TOKEN:0:5}... (truncated for security)"
+        echo "EXAMPLES_TEST_PRIVATE_KEY=${EXAMPLES_TEST_PRIVATE_KEY:0:5}... (truncated for security)"
+        echo "CHAIN_NAME=$CHAIN_NAME"
+        echo "JSON_RPC_URL=$JSON_RPC_URL"
     else
-        echo "No .env file found. Please provide the following details."
+        echo "No .env file found at $ENV_FILE. Please provide the following details."
         read -p "Enter your vLayer API token: " VLAYER_API_TOKEN
         read -p "Enter your test private key (e.g., 0x...): " EXAMPLES_TEST_PRIVATE_KEY
 
@@ -325,10 +341,14 @@ EOL
         echo "✅ .env file created and secured at $ENV_FILE."
     fi
 
-    # Verify required variables
+    # Verify required variables are set
     if [ -z "$VLAYER_API_TOKEN" ] || [ -z "$EXAMPLES_TEST_PRIVATE_KEY" ] || [ -z "$CHAIN_NAME" ] || [ -z "$JSON_RPC_URL" ]; then
         echo "Error: One or more required variables (VLAYER_API_TOKEN, EXAMPLES_TEST_PRIVATE_KEY, CHAIN_NAME, JSON_RPC_URL) are not set."
-        echo "Please ensure your .env file or inputs are correct."
+        echo "Contents of $ENV_FILE:"
+        cat "$ENV_FILE"
+        echo "Please ensure your .env file is correct or delete it to re-prompt:"
+        echo "  rm $ENV_FILE"
+        echo "Then rerun the script."
         exit 1
     fi
 }
@@ -378,14 +398,20 @@ setup_project() {
     echo "Installing Bun dependencies..."
     bun install
 
-    # Create .env.testnet.local
+    # Create .env.testnet.local using the loaded variables
     echo "Creating environment file for $project_name..."
+    echo "Debug: Using VLAYER_API_TOKEN=${VLAYER_API_TOKEN:0:5}... (truncated for security)"
+    echo "Debug: Using EXAMPLES_TEST_PRIVATE_KEY=${EXAMPLES_TEST_PRIVATE_KEY:0:5}... (truncated for security)"
     cat > .env.testnet.local << EOL
 VLAYER_API_TOKEN=$VLAYER_API_TOKEN
-EXAMPLES_TEST_PRIVATE_KEY=$EXAMPLES_TEST_PRIVATE_KEY
+EXAMPLES_TEST_PRIVATE_KEY=$EXPRODUCTS_TEST_PRIVATE_KEY
 CHAIN_NAME=$CHAIN_NAME
 JSON_RPC_URL=$JSON_RPC_URL
 EOL
+
+    # Verify .env.testnet.local
+    echo "Debug: Contents of .env.testnet.local:"
+    cat .env.testnet.local
 
     # Run prove:testnet
     echo "Running prove:testnet for $project_name..."
@@ -411,7 +437,7 @@ main() {
     # Install dependencies
     install_dependencies
 
-    # Set up .env
+    # Set up .env (this should only prompt once)
     setup_env
 
     # Set up repo
