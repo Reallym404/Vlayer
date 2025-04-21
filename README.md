@@ -65,10 +65,6 @@ chmod +x scripts/setup-vlayer.sh
 ```bash
 ./scripts/setup-vlayer.sh web-proof
 ```
-- Or set up all features:
-```bash
-./scripts/setup-vlayer.sh all
-```
 
  - The default action is to keep your current version.
 *** zshrc (Y/I/N/O/D/Z) [default=N] ? y
