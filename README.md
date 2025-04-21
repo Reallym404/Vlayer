@@ -32,6 +32,9 @@ This guide shows you how to set up vLayer projects (Email Proof, Teleport, Time 
 
 ## Use codespace to run this setup : https://github.com/codespaces
 - Click Blank
+![image](https://github.com/user-attachments/assets/d96e2d57-903e-4d27-b72a-9654cce5e2cd)
+
+
 
 ## Setup Instructions
 
