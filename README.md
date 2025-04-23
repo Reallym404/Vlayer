@@ -72,7 +72,7 @@ chmod +x scripts/setup-vlayer.sh
 
 ![image](https://github.com/user-attachments/assets/3b5dd1a7-a6e4-4d21-8085-28401af4ca88)
 
-- To get your API TOKEN go to https://dashboard.vlayer.xyz/ ▶️ Click Create new JWT token ▶️ Copy your Twitter Profile and paste ▶️ Copy your api token and save it!
+- To get your API TOKEN go to https://dashboard.vlayer.xyz/ ▶️ Click Create new JWT token ▶️ Copy your Twitter Profile or any URL & paste the URL link ▶️ Copy your api token and save it!
 
 
 ## Output on your dashboard https://dashboard.vlayer.xyz/history
