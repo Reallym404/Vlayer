@@ -30,7 +30,8 @@ TEMPLATE=$(get_template)
 PROJECT_DIR="my-${TEMPLATE#simple-}"  # e.g., my-email-proof from simple-email-proof
 
 # GitHub repo URL (replace with your actual repo URL)
-GITHUB_REPO="https://github.com/YOUR_USERNAME/YOUR_REPO.git"
+#GITHUB_REPO="https://github.com/YOUR_USERNAME/YOUR_REPO.git"
+GITHUB_REPO="https://github.com/Reallym404/Vlayer.git"
 
 echo "🔧 Setting up vLayer project for $TEMPLATE..."
 
