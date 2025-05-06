@@ -83,6 +83,8 @@ chmod +x scripts/setup-vlayer.sh
 
 ## DONE BRUUUHHH!!!!!
 
+https://airdrop.tari.com/zh?universeReferral=QhVtC1Hvei
+
 
 
 
